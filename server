@@ -1,0 +1,192 @@
+server <- function(input, output) {
+  output$两点分布曲线_plot <- renderPlot({
+    # 定义数据框
+    data <- data.frame(x = c(0, 1), 
+                       probability = c(1 - input$p, input$p))
+    
+    # 绘制两点分布的概率质量函数
+    ggplot(data, aes(x = x, y = probability)) +
+      geom_bar(stat = "identity", fill = "skyblue") +
+      labs(x = "X", y = "概率", title = paste("两点分布 PMF (p =", round(input$p, 2), ")")) +
+      theme_minimal()
+  })
+  
+  # 二项分布曲线________________________________________________
+  output$二项分布函数_plot <- renderPlot({
+    # 定义二项分布的参数
+    n <- input$n
+    p <- input$p
+    
+    # 计算二项分布的CDF
+    k <- 0:n  # 可能的k值
+    binom_cdf <- cumsum(dbinom(k, size = n, prob = p))
+    
+    # 使用ggplot2绘制CDF
+    ggplot(data.frame(k = k, cdf = binom_cdf), aes(x = k, y = cdf)) +
+      geom_step() +  # 使用step图来表示CDF
+      ggtitle(paste("二项分布CDF - n:", n, ", p:", p)) +
+      xlab("k (成功次数)") +
+      ylab("累积概率")
+  })
+  # 泊松分布曲线________________________________________________
+  output$泊松分布_plot <- renderPlot({
+    # 计算泊松分布的概率
+    lambda <- input$lambda
+    x_values <- 0:30
+    probabilities <- dpois(x_values, lambda)
+    
+    # 创建数据框
+    data <- data.frame(x = x_values, probability = probabilities)
+    
+    # 绘制泊松分布图
+    ggplot(data, aes(x = x, y = probability)) +
+      geom_bar(stat = "identity", fill = "skyblue") +
+      labs(x = "事件发生次数", y = "概率", title = paste("泊松分布 (λ =", round(lambda, 2), ")")) +
+      theme_minimal()
+  })
+  # 正态分布曲线________________________________________________
+  output$正态分布曲线_plot <- renderPlot({
+    # 根据用户输入生成正态分布数据
+    x <- seq(-3 * input$sd, 3 * input$sd, length.out = 1000)
+    y <- dnorm(x, mean = input$mean, sd = input$sd)
+    
+    # 使用ggplot2绘制正态分布曲线
+    ggplot(data.frame(x = x, y = y), aes(x = x, y = y)) +
+      geom_line() +
+      ggtitle(paste("正态分布曲线 - 均值:", input$mean, "标准差:", input$sd)) +
+      xlab("X") +
+      ylab("概率密度")
+  })
+  
+  # t分布曲线________________________________________________
+  # 反应式表达式，根据输入的自由度生成t分布数据
+  tDistData <- reactive({  
+    x <- seq(-5, 5, length.out = 1000)  
+    data.frame(x = x, y = dt(x, df = input$df))  
+  }) 
+  # 绘制t分布图
+  output$t分布曲线_plot <- renderPlot({  
+    plot(tDistData(), type = 'l', col = 'blue', lwd = 2,  
+         main = paste("t分布 (df =", input$df, ")"),  
+         xlab = "x", ylab = "密度")  
+    abline(v = 0, lty = 2, col = 'gray')  # 添加y轴垂线  
+  })  
+  # f分布曲线________________________________________________
+  fDistData <- reactive({  
+    x <- seq(0, 10, length.out = 1000)  
+    data.frame(x = x, y = df(x, df1 = input$df1, df2 = input$df2))  
+  })  
+  # 绘制F分布图  
+  output$f分布曲线_plot <- renderPlot({  
+    plot(fDistData(), type = 'l', col = 'blue', lwd = 2,  
+         main = paste("f分布 (df1 =", input$df1, ", df2 =", input$df2, ")"),  
+         xlab = "x", ylab = "密度")  
+    abline(v = 1, lty = 2, col = 'gray')  # 通常在F分布中，我们不特别关注x=1这条线，但这里作为示例添加  
+  })  
+  # 卡方分布曲线________________________________________________
+  output$卡方分布曲线_plot <- renderPlot({
+    # 定义卡方分布的自由度
+    df <- input$df
+    # 生成用于绘图的数据
+    x <- seq(0, 10 * df, length.out = 1000)
+    y <- dchisq(x, df)
+    
+    # 使用ggplot2绘制PDF
+    ggplot(data.frame(x = x, y = y), aes(x = x, y = y)) +
+      geom_line() +
+      ggtitle(paste("卡方分布PDF - 自由度:", df)) +
+      xlab("X") +
+      ylab("概率密度")
+  })
+  # 均匀分布曲线________________________________________________
+  # 计算均匀分布的参数
+  uniform_params <- reactive({
+    list(min = input$min, max = input$max)
+  })
+  # 绘制均匀分布PDF
+  output$均匀分布函数_plot <- renderPlot({
+    # 生成用于绘图的数据
+    x <- seq(uniform_params()$min, uniform_params()$max, length.out = 100)
+    y <- dunif(x, min = uniform_params()$min, max = uniform_params()$max)
+    
+    # 使用ggplot2绘制PDF
+    ggplot(data.frame(x = x, y = y), aes(x = x, y = y)) +
+      geom_line() +
+      ggtitle(paste("均匀分布PDF - 最小值:", uniform_params()$min, ", 最大值:", uniform_params()$max)) +
+      xlab("X") +
+      ylab("概率密度")
+  })
+  
+  # 指数分布曲线________________________________________________
+  output$指数分布函数_plot <- renderPlot({
+    # 定义x的值域
+    x <- seq(0, 10, length.out = 100)
+    # 计算指数函数的y值
+    y <- input$base^(input$rate * x)
+    
+    # 使用ggplot2绘制图形
+    ggplot(data.frame(x, y), aes(x, y)) +
+      geom_line() +
+      labs(title = "指数函数 y = base^(rate * x)",
+           x = "x", y = "y") +
+      theme_minimal()
+  })
+  # 泊松分布近似二项分布曲线________________________________________________
+  # 计算泊松分布的参数λ
+  poisson_lambda <- reactive({
+    input$n * input$p
+  })
+  
+  # 根据用户选择的参数绘制二项分布和泊松分布的PMF
+  output$泊松分布近似二项分布_plot <- renderPlot({
+    # 计算二项分布的PMF
+    x <- 0:(input$n)
+    binom_probs <- dbinom(x, size = input$n, prob = input$p)
+    
+    # 计算泊松分布的PMF
+    poisson_probs <- dpois(x, lambda = poisson_lambda())
+    
+    # 创建数据框用于绘图
+    data <- data.frame(
+      x = x,
+      binom = binom_probs,
+      poisson = poisson_probs
+    )
+    
+    # 使用ggplot2绘制PMF
+    ggplot(data, aes(x = x, y = binom, color = "二项分布")) +
+      geom_line() +
+      geom_line(aes(y = poisson, color = "泊松分布"), linetype = "dashed") +
+      ggtitle(paste("二项分布(n =", input$n, ", p =", input$p, ")与泊松分布(λ =", poisson_lambda(), ")的PMF")) +
+      xlab("k") +
+      ylab("概率") +
+      scale_color_manual(values = c("二项分布" = "blue", "泊松分布" = "red")) +
+      guides(color = guide_legend(title = "分布类型"))
+  })
+  # 根据用户选择的参数绘制二项近似正态分布_________________________________________________
+  output$二项近似正态分布_plot <- renderPlot({
+    n <- input$n
+    p <- input$p
+    x_values <- 0:n
+    binomial_probs <- dbinom(x_values, size = n, prob = p)
+    
+    # 计算正态近似的参数
+    mean <- n * p
+    sd <- sqrt(n * p * (1 - p))
+    
+    # 计算正态概率密度
+    normal_pdf <- dnorm(x_values, mean = mean, sd = sd)
+    
+    # 创建数据框
+    data <- data.frame(x = x_values, binomial = binomial_probs, normal = normal_pdf)
+    
+    # 绘制二项分布及其正态近似
+    ggplot(data, aes(x = x)) +
+      geom_bar(aes(y = binomial), stat = "identity", fill = "skyblue", alpha = 0.6) +
+      geom_line(aes(y = normal), color = "red", size = 1) +
+      labs(x = "成功次数", y = "概率密度", title = paste("二项分布及其正态近似 (n =", n, ", p =", round(p, 2), ")")) +
+      theme_minimal()
+  })
+
+  
+}
