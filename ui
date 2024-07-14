@@ -1,0 +1,96 @@
+library(ggplot2)
+library(shiny)
+library(shinydashboard)
+
+
+
+ui <- dashboardPage(
+  dashboardHeader(title = "概率统计动态演示平台"),
+  dashboardSidebar(
+    sidebarMenu(
+      menuItem("离散型",
+               menuSubItem("两点分布动态演示", tabName = "两点分布曲线", icon = icon("chart-line")),
+               menuSubItem("二项分布动态演示", tabName = "二项分布曲线", icon = icon("chart-line")),
+               menuSubItem("泊松分布动态演示", tabName = "泊松分布曲线", icon = icon("chart-line"))
+      ),
+      menuItem("连续型",
+               menuSubItem("正态分布动态演示", tabName="正态分布曲线", icon = icon("chart-line")),
+               menuSubItem("t分布动态演示", tabName = "t分布曲线", icon = icon("chart-line")),
+               menuSubItem("f分布动态演示", tabName = "f分布曲线", icon = icon("chart-line")),
+               menuSubItem("卡方分布动态演示", tabName = "卡方分布曲线", icon = icon("chart-line")),
+               menuSubItem("均匀分布动态演示", tabName = "均匀分布曲线", icon = icon("chart-line")),
+               menuSubItem("指数分布动态演示", tabName = "指数分布曲线", icon = icon("chart-line")),
+               menuSubItem("泊松分布近似二项分布动态演示", tabName = "泊松近似二项分布曲线", icon = icon("chart-line")),
+               menuSubItem("二项近似正态分布动态演示", tabName = "二项近似正态分布曲线", icon = icon("chart-line"))
+      )
+    )
+  ),
+  
+  dashboardBody(
+    fluidRow(
+      column(width = 6,
+             h3("离散型"),
+             tabsetPanel(
+               tabPanel("两点分布函数",
+                        plotOutput("两点分布曲线_plot"),
+                        sliderInput("p", "成功概率 p:", min = 0, max = 1, value = 0.5, step = 0.01)
+               ),
+               tabPanel("二项分布函数",
+                        plotOutput("二项分布函数_plot"),
+                        sliderInput("n", "试验次数 (n):", min = 1, max = 100, value = 10, step = 1),
+                        sliderInput("p", "成功概率 (p):", min = 0, max = 1, value = 0.5, step = 0.01)
+               ),
+               tabPanel("泊松分布",
+                        plotOutput("泊松分布_plot"),
+                        sliderInput("lambda", "平均发生率 λ:", min = 0.1, max = 10, value = 5, step = 0.1)
+               )
+             )
+      ),
+      column(width = 6,
+             h3("连续型"),
+             tabsetPanel(
+               tabPanel("正态分布曲线", 
+                        plotOutput("正态分布曲线_plot"), # 定义一个绘图输出
+                        sliderInput("mean", "均值 (mean):", min = -10, max = 10, value = 0, step = 0.1),
+                        sliderInput("sd", "标准差 (standard deviation):", min = 0.1, max = 5, value = 1, step = 0.1)
+               ),
+               tabPanel("t分布曲线", 
+                        plotOutput("t分布曲线_plot"), # 定义一个绘图输出
+                        sliderInput("df", "自由度 (df):", min = 1, max = 100, value = 10, step = 1),  
+               ),
+               tabPanel("f分布曲线", 
+                        plotOutput("f分布曲线_plot"), # 定义一个绘图输出
+                        sliderInput("df1", "第一个自由度 (df1):", min = 1, max = 100, value = 10, step = 1),  
+                        # 第二个滑块输入，用于调整第二个自由度df2  
+                        sliderInput("df2", "第二个自由度 (df2):", min = 1, max = 100, value = 20, step = 1)  
+               ),
+               tabPanel("卡方分布曲线", 
+                        plotOutput("卡方分布曲线_plot"), # 定义一个绘图输出
+                        sliderInput("df", "自由度 (df):", min = 1, max = 20, value = 1, step = 1)
+               ),
+               tabPanel("均匀分布函数",
+                        plotOutput("均匀分布函数_plot"),
+                        sliderInput("min", "最小值 (min):", min = 0, max = 10, value = 0, step = 0.1),
+                        sliderInput("max", "最大值 (max):", min = 0, max = 10, value = 1, step = 0.1)
+               ),
+               tabPanel("指数函数",
+                        plotOutput("指数分布函数_plot"),
+                        sliderInput("base", "选择基底 (a > 1 时指数增长):", min = 0.5, max = 2, value = 1, step = 0.01),
+                        sliderInput("rate", "选择增长率:", min = 0.1, max = 1, value = 0.1, step = 0.01)
+               ),
+               tabPanel("泊松分布近似二项分布",
+                        plotOutput("泊松分布近似二项分布_plot"),
+                        sliderInput("n", "二项分布试验次数 (n):", min = 1, max = 100, value = 10, step = 1),
+                        sliderInput("p", "每次试验成功概率 (p):", min = 0, max = 1, value = 0.1, step = 0.01)
+               ),
+               tabPanel("二项近似正态分布",
+                        plotOutput("二项近似正态分布_plot"),
+                        sliderInput("n", "试验次数 n:", min = 1, max = 100, value = 30),
+                        sliderInput("p", "成功概率 p:", min = 0, max = 1, value = 0.5, step = 0.01)
+               )
+             )
+             
+      )
+    )
+  )
+)
